@@ -14,25 +14,44 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
   </head>
   <body>
     <div class="app-container">
+      <!-- Session Counter - Top Left -->
+      <div class="session-counter-top">
+        <div class="info-card">
+          <div class="info-icon">📊</div>
+          <div class="info-content">
+            <h3>Sessions Today</h3>
+            <p class="info-value" id="session-count">0 / 3</p>
+          </div>
+        </div>
+      </div>
+
       <header class="header">
         <h1 class="title">BreathForge356</h1>
         <p class="subtitle">3 sessions per day • 6 breaths per minute • 5 minutes per session</p>
       </header>
 
       <main class="main-content">
-        <div class="session-info">
-          <div class="info-card">
-            <div class="info-icon">📊</div>
-            <div class="info-content">
-              <h3>Sessions Today</h3>
-              <p class="info-value" id="session-count">0 / 3</p>
-            </div>
-          </div>
-          <div class="info-card">
-            <div class="info-icon">⏰</div>
-            <div class="info-content">
-              <h3>Next Reminder</h3>
-              <p class="info-value" id="next-reminder">--:--</p>
+        <!-- Instructions Section -->
+        <div class="instructions-section">
+          <div class="instructions-card">
+            <h2 class="instructions-title">How to Use</h2>
+            <div class="instructions-content">
+              <div class="instruction-item">
+                <span class="instruction-number">1</span>
+                <p>Click "Start Session" to begin your 5-minute breathing exercise</p>
+              </div>
+              <div class="instruction-item">
+                <span class="instruction-number">2</span>
+                <p>Follow the animation: <strong>Breathe In</strong> for 4 seconds, then <strong>Breathe Out</strong> for 6 seconds</p>
+              </div>
+              <div class="instruction-item">
+                <span class="instruction-number">3</span>
+                <p>Complete 30 breath cycles (6 breaths per minute × 5 minutes)</p>
+              </div>
+              <div class="instruction-item">
+                <span class="instruction-number">4</span>
+                <p>Aim for 3 sessions per day to maximize the benefits of the 356 method</p>
+              </div>
             </div>
           </div>
         </div>
@@ -58,29 +77,6 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     getSessionCountToday,
     canStartNewSession 
   } from '../lib/sessionTracker';
-  import { 
-    getReminderSettings, 
-    requestNotificationPermission,
-    showReminderNotification,
-    checkReminderTime 
-  } from '../lib/reminders';
-
-  // Request notification permission on load
-  if (typeof window !== 'undefined') {
-    requestNotificationPermission().then(() => {
-      // Check if it's time for a reminder
-      if (checkReminderTime()) {
-        showReminderNotification();
-      }
-    });
-
-    // Set up periodic reminder checks (every minute)
-    setInterval(() => {
-      if (checkReminderTime()) {
-        showReminderNotification();
-      }
-    }, 60000);
-  }
 
   function updateUI() {
     const sessions = getTodaySessions();
@@ -91,29 +87,6 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     const sessionCountEl = document.getElementById('session-count');
     if (sessionCountEl) {
       sessionCountEl.textContent = `${sessionCount} / 3`;
-    }
-
-    // Update next reminder time
-    const reminderEl = document.getElementById('next-reminder');
-    if (reminderEl) {
-      const settings = getReminderSettings();
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      
-      let nextReminder = settings.times.find(time => {
-        const [hour, minute] = time.split(':').map(Number);
-        const reminderTime = new Date();
-        reminderTime.setHours(hour, minute, 0, 0);
-        return reminderTime > now;
-      });
-
-      if (!nextReminder) {
-        // If no reminder today, show first one tomorrow
-        nextReminder = settings.times[0];
-      }
-
-      reminderEl.textContent = nextReminder;
     }
 
     // Update session list
@@ -204,12 +177,25 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
+    position: relative;
+  }
+
+  .session-counter-top {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 10;
+  }
+
+  .session-counter-top .info-card {
+    margin: 0;
+    min-width: 200px;
   }
 
   .header {
     text-align: center;
-    margin-bottom: 3rem;
-    padding: 2rem 0;
+    margin-bottom: 2rem;
+    padding: 2rem 0 1rem;
   }
 
   .title {
@@ -235,11 +221,68 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     gap: 2rem;
   }
 
-  .session-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+  .instructions-section {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  .instructions-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px var(--shadow);
+    max-width: 600px;
+    width: 100%;
+  }
+
+  .instructions-title {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .instructions-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .instruction-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--lighter-blue);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-blue);
+  }
+
+  .instruction-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .instruction-item p {
+    color: var(--text-dark);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .instruction-item strong {
+    color: var(--primary-blue);
+    font-weight: 600;
   }
 
   .info-card {
@@ -342,12 +385,31 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
       font-size: 0.9rem;
     }
 
-    .session-info {
-      grid-template-columns: 1fr;
+    .session-counter-top {
+      position: relative;
+      top: 0;
+      left: 0;
+      margin-bottom: 1rem;
+    }
+
+    .session-counter-top .info-card {
+      min-width: auto;
+    }
+
+    .instructions-card {
+      padding: 1.5rem;
+    }
+
+    .instruction-item {
+      padding: 0.75rem;
     }
 
     .app-container {
       padding: 1rem;
+    }
+
+    .header {
+      padding-top: 1rem;
     }
   }
 </style>
