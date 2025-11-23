@@ -1,0 +1,388 @@
+---
+export interface Props {
+  onComplete?: () => void;
+}
+
+const { onComplete } = Astro.props;
+---
+
+<div class="breathing-container" id="breathing-container">
+  <div class="breathing-circle" id="breathing-circle">
+    <div class="breathing-text" id="breathing-text">Ready</div>
+    <div class="breathing-timer" id="breathing-timer"></div>
+    <div class="breathing-instruction" id="breathing-instruction">Click Start to begin</div>
+  </div>
+  <div class="breathing-controls">
+    <button class="start-button" id="start-button">Start Session</button>
+    <button class="stop-button" id="stop-button" style="display: none;">Stop</button>
+  </div>
+  <div class="breathing-progress">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="progress-text" id="progress-text">0 / 30 breaths</div>
+  </div>
+</div>
+
+<script>
+  const BREATH_CYCLES = 30; // 6 breaths/min × 5 minutes = 30 breaths
+  const INHALE_DURATION = 4000; // 4 seconds
+  const EXHALE_DURATION = 6000; // 6 seconds
+  const TOTAL_CYCLE_DURATION = INHALE_DURATION + EXHALE_DURATION; // 10 seconds
+
+  let currentCycle = 0;
+  let isRunning = false;
+  let animationId: number | null = null;
+  let startTime: number | null = null;
+
+  const container = document.getElementById('breathing-container');
+  const circle = document.getElementById('breathing-circle');
+  const text = document.getElementById('breathing-text');
+  const timer = document.getElementById('breathing-timer');
+  const instruction = document.getElementById('breathing-instruction');
+  const startButton = document.getElementById('start-button');
+  const stopButton = document.getElementById('stop-button');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+
+  let timerInterval: number | null = null;
+  let remainingSeconds = 0;
+
+  function updateProgress() {
+    if (!progressBar || !progressText) return;
+    
+    const progress = (currentCycle / BREATH_CYCLES) * 100;
+    progressBar.style.width = `${progress}%`;
+    progressText.textContent = `${currentCycle} / ${BREATH_CYCLES} breaths`;
+  }
+
+  function startTimer(seconds: number) {
+    if (timerInterval !== null) {
+      clearInterval(timerInterval);
+    }
+    
+    remainingSeconds = seconds;
+    if (timer) {
+      timer.textContent = `${remainingSeconds}s`;
+    }
+
+    timerInterval = window.setInterval(() => {
+      remainingSeconds--;
+      if (timer) {
+        timer.textContent = remainingSeconds > 0 ? `${remainingSeconds}s` : '';
+      }
+      if (remainingSeconds <= 0 && timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval !== null) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    if (timer) {
+      timer.textContent = '';
+    }
+    remainingSeconds = 0;
+  }
+
+  function animateBreath(phase: 'inhale' | 'exhale', duration: number) {
+    if (!circle || !text || !instruction) return;
+
+    const startScale = phase === 'inhale' ? 1 : 1.5;
+    const endScale = phase === 'inhale' ? 1.5 : 1;
+    const startOpacity = phase === 'inhale' ? 0.6 : 0.8;
+    const endOpacity = phase === 'inhale' ? 0.8 : 0.6;
+
+    text.textContent = phase === 'inhale' ? 'Breathe In' : 'Breathe Out';
+    instruction.textContent = phase === 'inhale' 
+      ? 'Fill your lungs slowly' 
+      : 'Release gently and completely';
+
+    // Start timer for this phase
+    const seconds = Math.ceil(duration / 1000);
+    startTimer(seconds);
+
+    // Cancel any previous animation
+    if (animationId !== null) {
+      cancelAnimationFrame(animationId);
+    }
+
+    // Set initial state immediately
+    circle.style.transform = `scale(${startScale})`;
+    circle.style.opacity = String(startOpacity);
+    circle.style.transition = 'none';
+
+    const startTime = performance.now();
+    
+    function animate() {
+      if (!isRunning || !circle) return;
+
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Linear easing for precise timing
+      const scale = startScale + (endScale - startScale) * progress;
+      const opacity = startOpacity + (endOpacity - startOpacity) * progress;
+
+      circle.style.transform = `scale(${scale})`;
+      circle.style.opacity = String(opacity);
+
+      if (progress < 1) {
+        animationId = requestAnimationFrame(animate);
+      } else {
+        // Ensure final state is set
+        circle.style.transform = `scale(${endScale})`;
+        circle.style.opacity = String(endOpacity);
+        animationId = null;
+      }
+    }
+
+    // Start animation immediately
+    animationId = requestAnimationFrame(animate);
+  }
+
+  let currentSessionId: string | null = null;
+
+  function startSession() {
+    if (isRunning) return;
+
+    isRunning = true;
+    currentCycle = 0;
+    startTime = Date.now();
+    currentSessionId = `session-${Date.now()}`;
+
+    // Create session when starting
+    if (typeof window !== 'undefined' && (window as any).onBreathingStart) {
+      (window as any).onBreathingStart(currentSessionId);
+    }
+
+    if (startButton) startButton.style.display = 'none';
+    if (stopButton) stopButton.style.display = 'block';
+    if (container) container.classList.add('active');
+
+    runCycle();
+  }
+
+  function runCycle() {
+    if (!isRunning || currentCycle >= BREATH_CYCLES) {
+      completeSession();
+      return;
+    }
+
+    // Inhale phase - start immediately
+    animateBreath('inhale', INHALE_DURATION);
+    
+    // Start exhale immediately after inhale completes
+    setTimeout(() => {
+      if (!isRunning) return;
+      
+      // Exhale phase - start immediately
+      animateBreath('exhale', EXHALE_DURATION);
+      
+      // Move to next cycle immediately after exhale completes
+      setTimeout(() => {
+        if (!isRunning) return;
+        currentCycle++;
+        updateProgress();
+        
+        if (currentCycle < BREATH_CYCLES) {
+          // Start next cycle immediately
+          runCycle();
+        } else {
+          completeSession();
+        }
+      }, EXHALE_DURATION);
+    }, INHALE_DURATION);
+  }
+
+  function stopSession() {
+    isRunning = false;
+    if (animationId !== null) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+
+    stopTimer();
+
+    if (circle) {
+      circle.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+      circle.style.transform = 'scale(1)';
+      circle.style.opacity = '0.6';
+    }
+    if (text) text.textContent = 'Stopped';
+    if (instruction) instruction.textContent = 'Session paused';
+    if (startButton) {
+      startButton.textContent = 'Resume Session';
+      startButton.style.display = 'block';
+    }
+    if (stopButton) stopButton.style.display = 'none';
+    if (container) container.classList.remove('active');
+  }
+
+  function completeSession() {
+    isRunning = false;
+    if (animationId !== null) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+
+    stopTimer();
+
+    if (circle) {
+      circle.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+      circle.style.transform = 'scale(1)';
+      circle.style.opacity = '0.6';
+    }
+    if (text) text.textContent = 'Complete!';
+    if (instruction) instruction.textContent = 'Great job! Session finished.';
+    if (startButton) {
+      startButton.textContent = 'Start New Session';
+      startButton.style.display = 'block';
+    }
+    if (stopButton) stopButton.style.display = 'none';
+    if (container) container.classList.remove('active');
+
+    // Call completion callback if provided
+    if (typeof window !== 'undefined' && (window as any).onBreathingComplete) {
+      (window as any).onBreathingComplete(currentSessionId);
+    }
+    
+    currentSessionId = null;
+  }
+
+  if (startButton) {
+    startButton.addEventListener('click', startSession);
+  }
+  if (stopButton) {
+    stopButton.addEventListener('click', stopSession);
+  }
+
+  updateProgress();
+</script>
+
+<style>
+  .breathing-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+  }
+
+  .breathing-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 50%, #2a5f8f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 40px rgba(74, 144, 226, 0.3);
+    transform: scale(1);
+    opacity: 0.6;
+    margin-bottom: 3rem;
+    will-change: transform, opacity;
+  }
+
+  .breathing-container.active .breathing-circle {
+    transition: none;
+  }
+
+  .breathing-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .breathing-timer {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0.5rem 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .breathing-instruction {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    padding: 0 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .breathing-controls {
+    margin-bottom: 2rem;
+  }
+
+  .start-button,
+  .stop-button {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .start-button {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+  }
+
+  .start-button:hover {
+    background: linear-gradient(135deg, #5aa0f2 0%, #458acd 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+  }
+
+  .start-button:active {
+    transform: translateY(0);
+  }
+
+  .stop-button {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+  }
+
+  .stop-button:hover {
+    background: linear-gradient(135deg, #f75c4c 0%, #d0493b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+  }
+
+  .breathing-progress {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 1rem;
+  }
+
+  .progress-bar {
+    width: 0%;
+    height: 8px;
+    background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+  }
+
+  .progress-text {
+    text-align: center;
+    color: #4a90e2;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+</style>
+
