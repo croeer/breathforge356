@@ -20,6 +20,10 @@ const { onComplete } = Astro.props;
     <div class="progress-bar" id="progress-bar"></div>
     <div class="progress-text" id="progress-text">0 / 30 breaths</div>
   </div>
+  <div class="session-timer-container">
+    <div class="session-timer-label">Session Time Remaining</div>
+    <div class="session-timer" id="session-timer">5:00</div>
+  </div>
 </div>
 
 <script>
@@ -27,6 +31,7 @@ const { onComplete } = Astro.props;
   const INHALE_DURATION = 4000; // 4 seconds
   const EXHALE_DURATION = 6000; // 6 seconds
   const TOTAL_CYCLE_DURATION = INHALE_DURATION + EXHALE_DURATION; // 10 seconds
+  const SESSION_DURATION_SECONDS = 300; // 5 minutes = 300 seconds
 
   let currentCycle = 0;
   let isRunning = false;
@@ -42,9 +47,12 @@ const { onComplete } = Astro.props;
   const stopButton = document.getElementById('stop-button');
   const progressBar = document.getElementById('progress-bar');
   const progressText = document.getElementById('progress-text');
+  const sessionTimer = document.getElementById('session-timer');
 
   let timerInterval: number | null = null;
   let remainingSeconds = 0;
+  let sessionTimerInterval: number | null = null;
+  let sessionRemainingSeconds = SESSION_DURATION_SECONDS;
 
   function updateProgress() {
     if (!progressBar || !progressText) return;
@@ -85,6 +93,49 @@ const { onComplete } = Astro.props;
       timer.textContent = '';
     }
     remainingSeconds = 0;
+  }
+
+  function formatTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function startSessionTimer() {
+    if (sessionTimerInterval !== null) {
+      clearInterval(sessionTimerInterval);
+    }
+    
+    sessionRemainingSeconds = SESSION_DURATION_SECONDS;
+    if (sessionTimer) {
+      sessionTimer.textContent = formatTime(sessionRemainingSeconds);
+    }
+
+    sessionTimerInterval = window.setInterval(() => {
+      sessionRemainingSeconds--;
+      if (sessionTimer) {
+        sessionTimer.textContent = formatTime(Math.max(0, sessionRemainingSeconds));
+      }
+      if (sessionRemainingSeconds <= 0 && sessionTimerInterval !== null) {
+        clearInterval(sessionTimerInterval);
+        sessionTimerInterval = null;
+      }
+    }, 1000);
+  }
+
+  function stopSessionTimer() {
+    if (sessionTimerInterval !== null) {
+      clearInterval(sessionTimerInterval);
+      sessionTimerInterval = null;
+    }
+  }
+
+  function resetSessionTimer() {
+    stopSessionTimer();
+    sessionRemainingSeconds = SESSION_DURATION_SECONDS;
+    if (sessionTimer) {
+      sessionTimer.textContent = formatTime(sessionRemainingSeconds);
+    }
   }
 
   function animateBreath(phase: 'inhale' | 'exhale', duration: number) {
@@ -158,6 +209,9 @@ const { onComplete } = Astro.props;
       (window as any).onBreathingStart(currentSessionId);
     }
 
+    // Start session timer
+    startSessionTimer();
+
     if (startButton) startButton.style.display = 'none';
     if (stopButton) stopButton.style.display = 'block';
     if (container) container.classList.add('active');
@@ -205,6 +259,7 @@ const { onComplete } = Astro.props;
     }
 
     stopTimer();
+    stopSessionTimer();
 
     if (circle) {
       circle.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
@@ -229,6 +284,8 @@ const { onComplete } = Astro.props;
     }
 
     stopTimer();
+    stopSessionTimer();
+    resetSessionTimer();
 
     if (circle) {
       circle.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
@@ -260,6 +317,7 @@ const { onComplete } = Astro.props;
   }
 
   updateProgress();
+  resetSessionTimer();
 </script>
 
 <style>
@@ -383,6 +441,35 @@ const { onComplete } = Astro.props;
     color: #4a90e2;
     font-weight: 500;
     font-size: 0.9rem;
+  }
+
+  .session-timer-container {
+    margin-top: 2rem;
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(74, 144, 226, 0.2);
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .session-timer-label {
+    font-size: 0.85rem;
+    color: #5a7a9a;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .session-timer {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #4a90e2;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
   }
 </style>
 
