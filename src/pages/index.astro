@@ -1,12 +1,15 @@
 ---
-import BreathingAnimation from '../components/BreathingAnimation.astro';
+import BreathingAnimation from "../components/BreathingAnimation.astro";
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="BreathForge356 - Breathing training app using the 356 method" />
+    <meta
+      name="description"
+      content="BreathForge356 - Breathing training app using the 356 method"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
@@ -27,7 +30,9 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
 
       <header class="header">
         <h1 class="title">BreathForge356</h1>
-        <p class="subtitle">3 sessions per day • 6 breaths per minute • 5 minutes per session</p>
+        <p class="subtitle">
+          3 sessions per day • 6 breaths per minute • 5 minutes per session
+        </p>
       </header>
 
       <main class="main-content">
@@ -38,19 +43,30 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
             <div class="instructions-content">
               <div class="instruction-item">
                 <span class="instruction-number">1</span>
-                <p>Click "Start Session" to begin your 5-minute breathing exercise</p>
+                <p>
+                  Click "Start Session" to begin your 5-minute breathing
+                  exercise
+                </p>
               </div>
               <div class="instruction-item">
                 <span class="instruction-number">2</span>
-                <p>Follow the animation: <strong>Breathe In</strong> for 4 seconds, then <strong>Breathe Out</strong> for 6 seconds</p>
+                <p>
+                  Follow the animation: <strong>Breathe In</strong> for 4 seconds,
+                  then <strong>Breathe Out</strong> for 6 seconds
+                </p>
               </div>
               <div class="instruction-item">
                 <span class="instruction-number">3</span>
-                <p>Complete 30 breath cycles (6 breaths per minute × 5 minutes)</p>
+                <p>
+                  Complete 30 breath cycles (6 breaths per minute × 5 minutes)
+                </p>
               </div>
               <div class="instruction-item">
                 <span class="instruction-number">4</span>
-                <p>Aim for 3 sessions per day to maximize the benefits of the 356 method</p>
+                <p>
+                  Aim for 3 sessions per day to maximize the benefits of the 356
+                  method
+                </p>
               </div>
             </div>
           </div>
@@ -70,37 +86,38 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
 </html>
 
 <script>
-  import { 
-    getTodaySessions, 
-    addSession, 
-    completeSession, 
+  import {
+    getTodaySessions,
+    addSession,
+    completeSession,
     getSessionCountToday,
-    canStartNewSession 
-  } from '../lib/sessionTracker';
+    canStartNewSession,
+  } from "../lib/sessionTracker";
 
   function updateUI() {
     const sessions = getTodaySessions();
-    const completedSessions = sessions.filter(s => s.completed);
+    const completedSessions = sessions.filter((s) => s.completed);
     const sessionCount = completedSessions.length;
 
     // Update session count
-    const sessionCountEl = document.getElementById('session-count');
+    const sessionCountEl = document.getElementById("session-count");
     if (sessionCountEl) {
       sessionCountEl.textContent = `${sessionCount} / 3`;
     }
 
     // Update session list
-    const sessionListEl = document.getElementById('session-list');
+    const sessionListEl = document.getElementById("session-list");
     if (sessionListEl) {
       if (completedSessions.length === 0) {
-        sessionListEl.innerHTML = '<p class="empty-state">No sessions completed today</p>';
+        sessionListEl.innerHTML =
+          '<p class="empty-state">No sessions completed today</p>';
       } else {
         sessionListEl.innerHTML = completedSessions
-          .map(session => {
+          .map((session) => {
             const startTime = new Date(session.startTime);
-            const timeStr = startTime.toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
+            const timeStr = startTime.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
             });
             return `
               <div class="session-item">
@@ -109,7 +126,7 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
               </div>
             `;
           })
-          .join('');
+          .join("");
       }
     }
   }
@@ -117,13 +134,13 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
   let currentSession: any = null;
 
   // Set up start callback
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     (window as any).onBreathingStart = (sessionId: string) => {
       currentSession = {
         id: sessionId,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split("T")[0],
         startTime: new Date().toISOString(),
-        completed: false
+        completed: false,
       };
       addSession(currentSession);
       updateUI();
@@ -166,7 +183,8 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #e8f4fd 0%, #d0e8f5 50%, #b8dcf0 100%);
     min-height: 100vh;
     color: var(--text-dark);
@@ -201,7 +219,11 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
   .title {
     font-size: 3rem;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--primary-blue) 0%,
+      var(--dark-blue) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -266,7 +288,11 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--primary-blue) 0%,
+      var(--dark-blue) 100%
+    );
     color: white;
     border-radius: 50%;
     font-weight: 700;
@@ -293,7 +319,9 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     align-items: center;
     gap: 1rem;
     box-shadow: 0 4px 20px var(--shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
   }
 
   .info-card:hover {
@@ -413,4 +441,3 @@ import BreathingAnimation from '../components/BreathingAnimation.astro';
     }
   }
 </style>
-

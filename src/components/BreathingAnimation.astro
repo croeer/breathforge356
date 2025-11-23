@@ -223,6 +223,15 @@ const { onComplete } = Astro.props;
     if (stopButton) stopButton.style.display = "block";
     if (container) container.classList.add("active");
 
+    // Scroll to center the breathing animation
+    if (container) {
+      container.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+    }
+
     runCycle();
   }
 
