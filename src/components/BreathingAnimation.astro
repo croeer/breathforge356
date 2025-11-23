@@ -10,11 +10,15 @@ const { onComplete } = Astro.props;
   <div class="breathing-circle" id="breathing-circle">
     <div class="breathing-text" id="breathing-text">Ready</div>
     <div class="breathing-timer" id="breathing-timer"></div>
-    <div class="breathing-instruction" id="breathing-instruction">Click Start to begin</div>
+    <div class="breathing-instruction" id="breathing-instruction">
+      Click Start to begin
+    </div>
   </div>
   <div class="breathing-controls">
     <button class="start-button" id="start-button">Start Session</button>
-    <button class="stop-button" id="stop-button" style="display: none;">Stop</button>
+    <button class="stop-button" id="stop-button" style="display: none;"
+      >Stop</button
+    >
   </div>
   <div class="breathing-progress">
     <div class="progress-bar" id="progress-bar"></div>
@@ -38,16 +42,16 @@ const { onComplete } = Astro.props;
   let animationId: number | null = null;
   let startTime: number | null = null;
 
-  const container = document.getElementById('breathing-container');
-  const circle = document.getElementById('breathing-circle');
-  const text = document.getElementById('breathing-text');
-  const timer = document.getElementById('breathing-timer');
-  const instruction = document.getElementById('breathing-instruction');
-  const startButton = document.getElementById('start-button');
-  const stopButton = document.getElementById('stop-button');
-  const progressBar = document.getElementById('progress-bar');
-  const progressText = document.getElementById('progress-text');
-  const sessionTimer = document.getElementById('session-timer');
+  const container = document.getElementById("breathing-container");
+  const circle = document.getElementById("breathing-circle");
+  const text = document.getElementById("breathing-text");
+  const timer = document.getElementById("breathing-timer");
+  const instruction = document.getElementById("breathing-instruction");
+  const startButton = document.getElementById("start-button");
+  const stopButton = document.getElementById("stop-button");
+  const progressBar = document.getElementById("progress-bar");
+  const progressText = document.getElementById("progress-text");
+  const sessionTimer = document.getElementById("session-timer");
 
   let timerInterval: number | null = null;
   let remainingSeconds = 0;
@@ -56,7 +60,7 @@ const { onComplete } = Astro.props;
 
   function updateProgress() {
     if (!progressBar || !progressText) return;
-    
+
     const progress = (currentCycle / BREATH_CYCLES) * 100;
     progressBar.style.width = `${progress}%`;
     progressText.textContent = `${currentCycle} / ${BREATH_CYCLES} breaths`;
@@ -66,7 +70,7 @@ const { onComplete } = Astro.props;
     if (timerInterval !== null) {
       clearInterval(timerInterval);
     }
-    
+
     remainingSeconds = seconds;
     if (timer) {
       timer.textContent = `${remainingSeconds}s`;
@@ -75,7 +79,7 @@ const { onComplete } = Astro.props;
     timerInterval = window.setInterval(() => {
       remainingSeconds--;
       if (timer) {
-        timer.textContent = remainingSeconds > 0 ? `${remainingSeconds}s` : '';
+        timer.textContent = remainingSeconds > 0 ? `${remainingSeconds}s` : "";
       }
       if (remainingSeconds <= 0 && timerInterval !== null) {
         clearInterval(timerInterval);
@@ -90,7 +94,7 @@ const { onComplete } = Astro.props;
       timerInterval = null;
     }
     if (timer) {
-      timer.textContent = '';
+      timer.textContent = "";
     }
     remainingSeconds = 0;
   }
@@ -98,14 +102,14 @@ const { onComplete } = Astro.props;
   function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${String(secs).padStart(2, '0')}`;
+    return `${mins}:${String(secs).padStart(2, "0")}`;
   }
 
   function startSessionTimer() {
     if (sessionTimerInterval !== null) {
       clearInterval(sessionTimerInterval);
     }
-    
+
     sessionRemainingSeconds = SESSION_DURATION_SECONDS;
     if (sessionTimer) {
       sessionTimer.textContent = formatTime(sessionRemainingSeconds);
@@ -114,7 +118,9 @@ const { onComplete } = Astro.props;
     sessionTimerInterval = window.setInterval(() => {
       sessionRemainingSeconds--;
       if (sessionTimer) {
-        sessionTimer.textContent = formatTime(Math.max(0, sessionRemainingSeconds));
+        sessionTimer.textContent = formatTime(
+          Math.max(0, sessionRemainingSeconds)
+        );
       }
       if (sessionRemainingSeconds <= 0 && sessionTimerInterval !== null) {
         clearInterval(sessionTimerInterval);
@@ -138,18 +144,19 @@ const { onComplete } = Astro.props;
     }
   }
 
-  function animateBreath(phase: 'inhale' | 'exhale', duration: number) {
+  function animateBreath(phase: "inhale" | "exhale", duration: number) {
     if (!circle || !text || !instruction) return;
 
-    const startScale = phase === 'inhale' ? 1 : 1.5;
-    const endScale = phase === 'inhale' ? 1.5 : 1;
-    const startOpacity = phase === 'inhale' ? 0.6 : 0.8;
-    const endOpacity = phase === 'inhale' ? 0.8 : 0.6;
+    const startScale = phase === "inhale" ? 1 : 1.5;
+    const endScale = phase === "inhale" ? 1.5 : 1;
+    const startOpacity = phase === "inhale" ? 0.6 : 0.8;
+    const endOpacity = phase === "inhale" ? 0.8 : 0.6;
 
-    text.textContent = phase === 'inhale' ? 'Breathe In' : 'Breathe Out';
-    instruction.textContent = phase === 'inhale' 
-      ? 'Fill your lungs slowly' 
-      : 'Release gently and completely';
+    text.textContent = phase === "inhale" ? "Breathe In" : "Breathe Out";
+    instruction.textContent =
+      phase === "inhale"
+        ? "Fill your lungs slowly"
+        : "Release gently and completely";
 
     // Start timer for this phase
     const seconds = Math.ceil(duration / 1000);
@@ -163,16 +170,16 @@ const { onComplete } = Astro.props;
     // Set initial state immediately
     circle.style.transform = `scale(${startScale})`;
     circle.style.opacity = String(startOpacity);
-    circle.style.transition = 'none';
+    circle.style.transition = "none";
 
     const startTime = performance.now();
-    
+
     function animate() {
       if (!isRunning || !circle) return;
 
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // Linear easing for precise timing
       const scale = startScale + (endScale - startScale) * progress;
       const opacity = startOpacity + (endOpacity - startOpacity) * progress;
@@ -205,16 +212,16 @@ const { onComplete } = Astro.props;
     currentSessionId = `session-${Date.now()}`;
 
     // Create session when starting
-    if (typeof window !== 'undefined' && (window as any).onBreathingStart) {
+    if (typeof window !== "undefined" && (window as any).onBreathingStart) {
       (window as any).onBreathingStart(currentSessionId);
     }
 
     // Start session timer
     startSessionTimer();
 
-    if (startButton) startButton.style.display = 'none';
-    if (stopButton) stopButton.style.display = 'block';
-    if (container) container.classList.add('active');
+    if (startButton) startButton.style.display = "none";
+    if (stopButton) stopButton.style.display = "block";
+    if (container) container.classList.add("active");
 
     runCycle();
   }
@@ -226,21 +233,21 @@ const { onComplete } = Astro.props;
     }
 
     // Inhale phase - start immediately
-    animateBreath('inhale', INHALE_DURATION);
-    
+    animateBreath("inhale", INHALE_DURATION);
+
     // Start exhale immediately after inhale completes
     setTimeout(() => {
       if (!isRunning) return;
-      
+
       // Exhale phase - start immediately
-      animateBreath('exhale', EXHALE_DURATION);
-      
+      animateBreath("exhale", EXHALE_DURATION);
+
       // Move to next cycle immediately after exhale completes
       setTimeout(() => {
         if (!isRunning) return;
         currentCycle++;
         updateProgress();
-        
+
         if (currentCycle < BREATH_CYCLES) {
           // Start next cycle immediately
           runCycle();
@@ -262,18 +269,18 @@ const { onComplete } = Astro.props;
     stopSessionTimer();
 
     if (circle) {
-      circle.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-      circle.style.transform = 'scale(1)';
-      circle.style.opacity = '0.6';
+      circle.style.transition = "transform 0.3s ease, opacity 0.3s ease";
+      circle.style.transform = "scale(1)";
+      circle.style.opacity = "0.6";
     }
-    if (text) text.textContent = 'Stopped';
-    if (instruction) instruction.textContent = 'Session paused';
+    if (text) text.textContent = "Stopped";
+    if (instruction) instruction.textContent = "Session paused";
     if (startButton) {
-      startButton.textContent = 'Resume Session';
-      startButton.style.display = 'block';
+      startButton.textContent = "Resume Session";
+      startButton.style.display = "block";
     }
-    if (stopButton) stopButton.style.display = 'none';
-    if (container) container.classList.remove('active');
+    if (stopButton) stopButton.style.display = "none";
+    if (container) container.classList.remove("active");
   }
 
   function completeSession() {
@@ -288,32 +295,32 @@ const { onComplete } = Astro.props;
     resetSessionTimer();
 
     if (circle) {
-      circle.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-      circle.style.transform = 'scale(1)';
-      circle.style.opacity = '0.6';
+      circle.style.transition = "transform 0.3s ease, opacity 0.3s ease";
+      circle.style.transform = "scale(1)";
+      circle.style.opacity = "0.6";
     }
-    if (text) text.textContent = 'Complete!';
-    if (instruction) instruction.textContent = 'Great job! Session finished.';
+    if (text) text.textContent = "Complete!";
+    if (instruction) instruction.textContent = "Great job! Session finished.";
     if (startButton) {
-      startButton.textContent = 'Start New Session';
-      startButton.style.display = 'block';
+      startButton.textContent = "Start New Session";
+      startButton.style.display = "block";
     }
-    if (stopButton) stopButton.style.display = 'none';
-    if (container) container.classList.remove('active');
+    if (stopButton) stopButton.style.display = "none";
+    if (container) container.classList.remove("active");
 
     // Call completion callback if provided
-    if (typeof window !== 'undefined' && (window as any).onBreathingComplete) {
+    if (typeof window !== "undefined" && (window as any).onBreathingComplete) {
       (window as any).onBreathingComplete(currentSessionId);
     }
-    
+
     currentSessionId = null;
   }
 
   if (startButton) {
-    startButton.addEventListener('click', startSession);
+    startButton.addEventListener("click", startSession);
   }
   if (stopButton) {
-    stopButton.addEventListener('click', stopSession);
+    stopButton.addEventListener("click", stopSession);
   }
 
   updateProgress();
@@ -472,4 +479,3 @@ const { onComplete } = Astro.props;
     line-height: 1.2;
   }
 </style>
-
