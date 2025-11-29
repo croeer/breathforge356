@@ -1,4 +1,4 @@
-# BreathForge356
+# Everbreathe
 
 A breathing training app based on the 356 method - 3 sessions per day, 6 breaths per minute, 5 minutes per session.
 

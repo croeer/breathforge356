@@ -6,7 +6,7 @@ export interface Session {
   completed: boolean;
 }
 
-const STORAGE_KEY = 'breathforge356_sessions';
+const STORAGE_KEY = 'everbreathe_sessions';
 
 export function getTodaySessions(): Session[] {
   if (typeof window === 'undefined') return [];

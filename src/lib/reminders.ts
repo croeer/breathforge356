@@ -1,4 +1,4 @@
-const REMINDER_KEY = 'breathforge356_reminders';
+const REMINDER_KEY = 'everbreathe_reminders';
 const REMINDER_TIMES = ['09:00', '14:00', '20:00']; // 9 AM, 2 PM, 8 PM
 
 export interface ReminderSettings {
@@ -61,7 +61,7 @@ export function showReminderNotification(): void {
   }
   
   if (Notification.permission === 'granted') {
-    new Notification('BreathForge356', {
+    new Notification('Everbreathe', {
       body: 'Time for your breathing exercise! Take 5 minutes to practice the 356 method.',
       icon: '/favicon.svg',
       tag: 'breathforge-reminder'

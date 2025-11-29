@@ -1,5 +1,5 @@
 {
-  "name": "breathforge356",
+  "name": "everbreathe",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -10,7 +10,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.16.0"
+    "astro": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
